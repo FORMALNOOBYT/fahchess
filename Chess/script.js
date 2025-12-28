@@ -3,7 +3,7 @@ var game = new Chess();
 var gameMode = 'pvc';
 var peer = new Peer(); 
 var conn = null;
-var myColor = 'w';
+var myColor = 'w'; // Default is White
 
 // --- PEER NETWORKING ---
 peer.on('open', (id) => {
@@ -12,24 +12,30 @@ peer.on('open', (id) => {
     $('#status').text("SYSTEM READY");
 });
 
+// 1. Host Logic (You receive a connection)
 peer.on('connection', (connection) => {
     conn = connection;
-    myColor = 'w';
+    myColor = 'w'; // Host is White
     setMode('lan');
+    board.orientation('white'); // Ensure board is white-side down
     $('#player-role').text("White (Host)");
     $('#status').text("FRIEND JOINED! YOUR MOVE.");
     setupSocket();
 });
 
+// 2. Joiner Logic (You enter a code)
 function connectToPeer() {
     const friendId = $('#join-id').val();
     if(!friendId) return alert("Enter a code!");
     conn = peer.connect(friendId);
-    myColor = 'b';
+    myColor = 'b'; // Joiner is Black
     setMode('lan');
-    board.flip();
+    
+    // AUTO-FLIP: Make black closer to you
+    board.orientation('black'); 
+    
     $('#player-role').text("Black (Guest)");
-    $('#status').text("CONNECTED! WAITING...");
+    $('#status').text("CONNECTED! WAITING FOR WHITE...");
     setupSocket();
 }
 
@@ -45,14 +51,18 @@ function setupSocket() {
 // --- CORE GAME LOGIC ---
 function onDragStart (source, piece) {
     if (game.game_over()) return false;
+    
+    // Only allow moving your assigned color in LAN mode
     if (gameMode === 'lan' && piece.search(new RegExp('^' + myColor)) === -1) return false;
+    
+    // Standard turn checking
     if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
         (game.turn() === 'b' && piece.search(/^w/) !== -1)) return false;
 }
 
 function onDrop (source, target) {
     var move = game.move({ from: source, to: target, promotion: 'q' });
-    if (move === null) return 'snapback'; // Only TP back if move is actually illegal
+    if (move === null) return 'snapback'; 
 
     applyMoveVisuals(source, target);
     updateStatus();
@@ -90,13 +100,20 @@ function setMode(mode) {
 }
 
 function openLanMenu() { $('#lan-menu').fadeToggle(); }
+
 function resetGame() { 
     game.reset(); 
     board.start(); 
-    if (myColor === 'b' && gameMode === 'lan') board.flip();
+    // Reset orientation based on color
+    if (gameMode === 'lan') {
+        board.orientation(myColor === 'w' ? 'white' : 'black');
+    } else {
+        board.orientation('white');
+    }
     $('#move-history').empty(); 
     updateStatus(); 
 }
+
 function updateStatus() {
     var s = game.turn() === 'w' ? "White's Turn" : "Black's Turn";
     if(game.in_check()) s += " (CHECK!)";
@@ -104,6 +121,7 @@ function updateStatus() {
     $('#status').text(s);
 }
 
+// Initialization
 board = Chessboard('board', {
     draggable: true,
     position: 'start',
