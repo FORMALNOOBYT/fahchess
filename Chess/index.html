@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FAH!CHESS | P2P Room Mode</title>
+    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+</head>
+<body>
+    <div class="main-container">
+        <div class="glass-panel side-panel left-tilt">
+            <h2>HISTORY</h2>
+            <div id="move-history"></div>
+        </div>
+
+        <div class="board-area">
+            <div id="status">INITIALIZING P2P...</div>
+            
+            <div class="mode-selector">
+                <button id="pvc-btn" class="active" onclick="setMode('pvc')">VS BOT</button>
+                <button id="pvp-btn" onclick="setMode('pvp')">LOCAL PVP</button>
+                <button id="lan-btn" onclick="openLanMenu()">P2P ROOM</button>
+            </div>
+
+            <div id="lan-menu" style="display:none; margin-bottom: 15px; background: rgba(0, 242, 255, 0.1); padding: 15px; border-radius: 15px; border: 1px solid #00f2ff;">
+                <div style="font-size: 0.7em; margin-bottom: 10px;">YOUR ROOM CODE: <b id="my-id" style="color:#fffb00">LOADING...</b></div>
+                <input type="text" id="join-id" placeholder="Enter Friend's Code...">
+                <button onclick="connectToPeer()">JOIN ROOM</button>
+            </div>
+
+            <div id="board" style="width: 450px"></div>
+
+            <div class="controls">
+                <button onclick="resetGame()">RESET</button>
+                <button onclick="board.flip()">FLIP</button>
+            </div>
+        </div>
+
+        <div class="glass-panel side-panel right-tilt">
+            <h2>SYSTEM</h2>
+            <div class="stats">
+                <p>MODE: <span id="current-mode">Bot</span></p>
+                <p>PLAYER: <span id="player-color">White</span></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
