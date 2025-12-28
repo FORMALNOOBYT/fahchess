@@ -10,11 +10,7 @@ body {
     overflow: hidden;
 }
 
-.main-container {
-    display: flex;
-    gap: 50px;
-    perspective: 1500px;
-}
+.main-container { display: flex; gap: 50px; perspective: 1500px; }
 
 .glass-panel {
     background: rgba(255, 255, 255, 0.05);
@@ -25,73 +21,24 @@ body {
     width: 220px;
     height: 480px;
     box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
-    transition: transform 0.4s ease, border-color 0.4s;
-    overflow-y: auto;
+    transition: 0.4s;
 }
 
 .left-tilt { transform: rotateY(20deg); }
 .right-tilt { transform: rotateY(-20deg); }
 .glass-panel:hover { transform: rotateY(0deg) scale(1.05); border-color: #00f2ff; }
 
-.board-area {
-    transform: rotateX(10deg);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
+.board-area { transform: rotateX(10deg); display: flex; flex-direction: column; align-items: center; }
 
-#board {
-    border: 4px solid #00f2ff;
-    border-radius: 10px;
-    box-shadow: 0 0 40px rgba(0, 242, 255, 0.2);
-    transition: transform 0.6s ease-in-out;
-}
+#board { border: 4px solid #00f2ff; border-radius: 10px; transition: 0.6s; }
 
-/* Mode Buttons */
-.mode-selector { margin-bottom: 15px; display: flex; gap: 10px; }
-.mode-selector button { font-size: 0.7em; padding: 5px 12px; opacity: 0.5; }
+.mode-selector button { font-size: 0.7em; padding: 5px 12px; opacity: 0.5; margin: 0 5px; }
 .mode-selector button.active { opacity: 1; border-color: #fffb00; background: rgba(0, 242, 255, 0.1); }
 
-/* LAN Input */
-#lan-ip {
-    background: transparent;
-    border: 1px solid #00f2ff;
-    color: #00f2ff;
-    padding: 8px;
-    font-family: 'Orbitron';
-    width: 180px;
-    font-size: 0.7em;
-}
+#status { background: rgba(0, 242, 255, 0.1); border: 1px solid #00f2ff; padding: 10px 40px; border-radius: 50px; margin-bottom: 15px; }
 
-#status {
-    background: rgba(0, 242, 255, 0.1);
-    border: 1px solid #00f2ff;
-    padding: 10px 40px;
-    border-radius: 50px;
-    margin-bottom: 15px;
-    font-weight: bold;
-}
-
-button {
-    background: transparent;
-    border: 1px solid #00f2ff;
-    color: #00f2ff;
-    padding: 10px 20px;
-    margin: 10px 5px;
-    cursor: pointer;
-    font-family: 'Orbitron';
-    transition: 0.3s;
-}
-
+button { background: transparent; border: 1px solid #00f2ff; color: #00f2ff; padding: 10px 20px; margin: 10px 5px; cursor: pointer; font-family: 'Orbitron'; transition: 0.3s; }
 button:hover { background: #00f2ff; color: black; }
 
-.highlight-last {
-    box-shadow: inset 0 0 10px 3px #fffb00 !important;
-    background-color: rgba(255, 251, 0, 0.2) !important;
-}
-
-.move-entry {
-    border-bottom: 1px solid rgba(0, 242, 255, 0.1);
-    padding: 10px 0;
-    font-size: 0.8em;
-}
+.highlight-last { box-shadow: inset 0 0 10px 3px #fffb00 !important; background-color: rgba(255, 251, 0, 0.2) !important; }
+.move-entry { border-bottom: 1px solid rgba(0, 242, 255, 0.1); padding: 8px 0; font-size: 0.8em; }
