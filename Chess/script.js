@@ -1,103 +1,114 @@
 var board = null;
 var game = new Chess();
-var $status = $('#status');
-var $history = $('#move-history');
 var gameMode = 'pvc';
-var peer = new Peer(); // Create P2P Peer
+var peer = new Peer(); 
 var conn = null;
 var myColor = 'w';
 
-// --- P2P NETWORK LOGIC ---
-
-// 1. Get your Room Code
+// --- PEER NETWORKING ---
 peer.on('open', (id) => {
     $('#my-id').text(id);
-    $status.text("READY TO PLAY");
+    $('#net-status').text("Online");
+    $('#status').text("SYSTEM READY");
 });
 
-// 2. Listen for a Friend Joining
 peer.on('connection', (connection) => {
     conn = connection;
-    setupChat();
-    myColor = 'w'; // Host is always White
-    $('#player-color').text("White (Host)");
-    $status.text("FRIEND JOINED! YOUR MOVE.");
+    myColor = 'w';
     setMode('lan');
+    $('#player-role').text("White (Host)");
+    $('#status').text("FRIEND JOINED! YOUR MOVE.");
+    setupSocket();
 });
 
-// 3. Joining a Friend's Room
 function connectToPeer() {
     const friendId = $('#join-id').val();
+    if(!friendId) return alert("Enter a code!");
     conn = peer.connect(friendId);
-    setupChat();
-    myColor = 'b'; // Joiner is always Black
-    board.flip();
-    $('#player-color').text("Black (Guest)");
-    $status.text("CONNECTED! WAITING FOR WHITE...");
+    myColor = 'b';
     setMode('lan');
+    board.flip();
+    $('#player-role').text("Black (Guest)");
+    $('#status').text("CONNECTED! WAITING...");
+    setupSocket();
 }
 
-function setupChat() {
+function setupSocket() {
     conn.on('data', (data) => {
-        // When we receive a move from the other player
         game.move(data.move);
         board.position(game.fen());
         applyMoveVisuals(data.move.from, data.move.to);
         updateStatus();
-        updateHistory(data.move);
     });
 }
 
-// --- GAME LOGIC ---
-
-function onDragStart (source, piece, position, orientation) {
+// --- CORE GAME LOGIC ---
+function onDragStart (source, piece) {
     if (game.game_over()) return false;
-    
-    // In LAN mode, only allow moving your own color
     if (gameMode === 'lan' && piece.search(new RegExp('^' + myColor)) === -1) return false;
-
     if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
-        (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
-        return false;
-    }
+        (game.turn() === 'b' && piece.search(/^w/) !== -1)) return false;
 }
 
 function onDrop (source, target) {
     var move = game.move({ from: source, to: target, promotion: 'q' });
-    if (move === null) return 'snapback';
+    if (move === null) return 'snapback'; // Only TP back if move is actually illegal
 
     applyMoveVisuals(source, target);
     updateStatus();
-    updateHistory(move);
-
-    if (gameMode === 'pvc') {
-        window.setTimeout(makeRandomMove, 500);
-    } else if (gameMode === 'pvp') {
-        window.setTimeout(() => board.flip(), 700);
-    } else if (gameMode === 'lan' && conn) {
-        // Send move to friend
-        conn.send({ move: move });
-    }
+    
+    if (gameMode === 'pvc') window.setTimeout(makeRandomMove, 500);
+    else if (gameMode === 'pvp') window.setTimeout(() => board.flip(), 700);
+    else if (gameMode === 'lan' && conn) conn.send({ move: move });
 }
 
-// (Keep makeRandomMove, applyMoveVisuals, updateStatus, updateHistory, resetGame, and onSnapEnd from previous version)
+function makeRandomMove () {
+    var moves = game.moves({ verbose: true });
+    if (moves.length === 0) return;
+    var move = moves[Math.floor(Math.random() * moves.length)];
+    game.move(move);
+    board.position(game.fen());
+    applyMoveVisuals(move.from, move.to);
+    updateStatus();
+}
+
+function applyMoveVisuals(from, to) {
+    $('.square-55d63').removeClass('highlight-last');
+    $('.square-' + from).addClass('highlight-last');
+    $('.square-' + to).addClass('highlight-last');
+    var turn = game.turn() === 'b' ? 'White' : 'Black';
+    $('#move-history').prepend(`<div class="move-entry"><b>${turn}:</b> ${from} → ${to}</div>`);
+}
 
 function setMode(mode) {
     gameMode = mode;
     $('.mode-selector button').removeClass('active');
-    if (mode === 'pvc') $('#pvc-btn').addClass('active');
-    else if (mode === 'pvp') $('#pvp-btn').addClass('active');
-    else $('#lan-btn').addClass('active');
+    $(`#${mode}-btn`).addClass('active');
+    $('#current-mode').text(mode.toUpperCase());
+    if(mode !== 'lan') $('#lan-menu').hide();
+    resetGame();
 }
 
 function openLanMenu() { $('#lan-menu').fadeToggle(); }
+function resetGame() { 
+    game.reset(); 
+    board.start(); 
+    if (myColor === 'b' && gameMode === 'lan') board.flip();
+    $('#move-history').empty(); 
+    updateStatus(); 
+}
+function updateStatus() {
+    var s = game.turn() === 'w' ? "White's Turn" : "Black's Turn";
+    if(game.in_check()) s += " (CHECK!)";
+    if(game.game_over()) s = "GAME OVER";
+    $('#status').text(s);
+}
 
-var config = {
+board = Chessboard('board', {
     draggable: true,
     position: 'start',
-    pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
     onDragStart: onDragStart,
     onDrop: onDrop,
-    onSnapEnd: () => board.position(game.fen())
-};
-board = Chessboard('board', config);
+    onSnapEnd: () => board.position(game.fen()),
+    pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
+});
